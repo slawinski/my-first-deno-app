@@ -45,7 +45,6 @@ export const getDog = ({
     response.body = { msg: `Cannot find dog ${params.name}`}
 }
 
-// @ts-ignore
 export const addDog = async ({
     request,
     response
@@ -61,12 +60,61 @@ export const addDog = async ({
     response.status = 200
 }
 
+export const updateDog = async ({
+    params,
+    request,
+    response,
+  }: {
+    params: {
+      name: string
+    }
+    request: any
+    response: any
+  }) => {
+    const temp = dogs.filter((existingDog) => existingDog.name === params.name)
+    const body = await request.body()
+    const { age }: { age: number } = body.value
+
+    if (temp.length) {
+      temp[0].age = age
+      response.status = 200
+      response.body = { msg: 'OK' }
+      return
+    }
+
+    response.status = 400
+    response.body = { msg: `Cannot find dog ${params.name}` }
+  }
+
+export const removeDog = ({
+    params,
+    response
+}: {
+    params: {
+        name: string
+    }
+    response: any
+}) => {
+    const lengthBefore =  dogs.length
+    dogs = dogs.filter(dog => dog.name !== params.name)
+
+    if (dogs.length === lengthBefore) {
+        response.status = 400
+        response.body = {  msg: `Cannot find dog ${params.name}`}
+        return
+    }
+
+    response.body = { msg: 'OK'}
+    response.status = 200
+}
+
+
 router
     .get('/dogs', getDogs)
     .get('/dogs/:name', getDog)
     .post('/dogs', addDog)
-    // .put('/dogs/:name', updateDog)
-    // .delete('/dogs/:name', removeDog)
+    .put('/dogs/:name', updateDog)
+    .delete('/dogs/:name', removeDog)
 
 const app = new Application()
 app.use(router.routes())
